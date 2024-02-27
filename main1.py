@@ -67,9 +67,16 @@ def post_status():
         try:
             driver.get(group_link)
             try:
-                post_input = driver.find_element(
-                    By.XPATH, '/html/body/div/div/div[2]/div/div[1]/div[2]/form/table/tbody/tr/td[2]/div/textarea')
-                post_input.click()
+                post_photo = driver.find_element(By.NAME, 'view_photo')
+                post_photo.click()
+                photo_1 = driver.find_element(By.NAME, 'file1')
+                photo_1.send_keys(duong_dan_anh)
+                post_button = driver.find_element(By.NAME, 'add_photo_done')
+                post_button.click()
+                post_input = driver.find_element(By.NAME, 'xc_message')
+                post_input.send_keys(noi_dung)
+                post_status_button = driver.find_element(By.NAME, 'view_post')
+                post_status_button.click()
                 with open(tai_khoan, 'a') as f:
                     f.write(tai_khoan +': Post nội dung thành công vào group: ' + group_link + '\n')
             except:
