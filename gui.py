@@ -1,7 +1,9 @@
 import json
 import os
+import subprocess
 import sys
 
+from PyQt5 import QtGui
 from PyQt5.QtWidgets import (QApplication, QFileDialog, QLabel, QLineEdit,
                              QMessageBox, QPushButton, QTextEdit, QVBoxLayout,
                              QWidget)
@@ -56,6 +58,10 @@ class UI(QWidget):
         self.button_run = QPushButton('Chạy')
         self.button_run.clicked.connect(self.run)
         layout.addWidget(self.button_run)
+
+        self.button_stop = QPushButton('Dừng')
+        self.button_stop.clicked.connect(self.stop)
+        layout.addWidget(self.button_stop)
 
         self.setLayout(layout)
 
@@ -115,7 +121,7 @@ class UI(QWidget):
         }
         formatted_config = json.dumps(
             config, indent=4)
-        with open('config2.json', 'w') as f:
+        with open('config.json', 'w') as f:
             f.write(formatted_config)
 
         self.showSuccessPopup()
@@ -129,8 +135,8 @@ class UI(QWidget):
         msg.exec_()
 
     def loadConfig(self):
-        if os.path.exists('config2.json'):
-            with open('config2.json', 'r') as f:
+        if os.path.exists('config.json'):
+            with open('config.json', 'r') as f:
                 config = json.load(f)
                 self.input_account.setText(config.get('tai_khoan', ''))
                 self.input_password.setText(config.get('mat_khau', ''))
@@ -144,11 +150,16 @@ class UI(QWidget):
                     self.button_image.setText(file_name)
 
     def run(self):
-        os.system("python run.py")
+        subprocess.run("cmd /c lib/main1.exe", shell=True)
+
+    def stop(self):
+        os.system("cmd /c taskkill /f /im main1.exe")
 
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
     ui = UI()
+    app_icon = QtGui.QIcon("icon.png")
+    app.setWindowIcon(app_icon)
     ui.show()
     sys.exit(app.exec_())

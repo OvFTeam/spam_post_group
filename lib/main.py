@@ -7,7 +7,7 @@ from selenium.webdriver.common.by import By
 
 
 def read_config():
-    with open('config1.json', 'r') as f:
+    with open('config.json', 'r') as f:
         config = json.load(f)
         tai_khoan = config['tai_khoan']
         mat_khau = config['mat_khau']
