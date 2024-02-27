@@ -121,7 +121,7 @@ class UI(QWidget):
         }
         formatted_config = json.dumps(
             config, indent=4)
-        with open('config.json', 'w') as f:
+        with open('./lib/config.json', 'w') as f:
             f.write(formatted_config)
 
         self.showSuccessPopup()
@@ -135,8 +135,8 @@ class UI(QWidget):
         msg.exec_()
 
     def loadConfig(self):
-        if os.path.exists('config.json'):
-            with open('config.json', 'r') as f:
+        if os.path.exists('./lib/config.json'):
+            with open('./lib/config.json', 'r') as f:
                 config = json.load(f)
                 self.input_account.setText(config.get('tai_khoan', ''))
                 self.input_password.setText(config.get('mat_khau', ''))
@@ -150,16 +150,17 @@ class UI(QWidget):
                     self.button_image.setText(file_name)
 
     def run(self):
-        subprocess.run("cmd /c lib/main1.exe", shell=True)
+        subprocess.run("cmd /c ./lib/main.exe", shell=True)
 
     def stop(self):
-        os.system("cmd /c taskkill /f /im main1.exe")
+        os.system("cmd /c taskkill /f /im main.exe")
 
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
     ui = UI()
-    app_icon = QtGui.QIcon("icon.png")
+    icon_location = sys._MEIPASS + "/icon.png"
+    app_icon = QtGui.QIcon(icon_location)
     app.setWindowIcon(app_icon)
     ui.show()
     sys.exit(app.exec_())
