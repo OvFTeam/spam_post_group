@@ -282,5 +282,6 @@ if __name__ == '__main__':
     ui = UI()
     icon_location = sys._MEIPASS + "/icon.png"
     app_icon = QtGui.QIcon(icon_location)
+    app.setWindowIcon(app_icon)
     ui.show()
     sys.exit(app.exec_())
