@@ -274,6 +274,7 @@ class UI(QWidget):
                                 "Đợi chạy nốt nhé, hihi :>>", QMessageBox.Ok)
         if hasattr(self, 'worker') and self.worker.isRunning():
             self.worker.stopped = True
+        os.system('taskkill /im chromedriver.exe /f')
 
 
 if __name__ == '__main__':
