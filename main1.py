@@ -35,7 +35,7 @@ def post_status():
 
     try:
         password_input = driver.find_element(By.NAME, 'pass')
-        with open(tai_khoan + '.txt', 'a') as f:
+        with open(tai_khoan + '_log.txt', 'a') as f:
             f.write(tai_khoan + ': Sai mật khẩu' + '\n')
         return 0
     except:
@@ -77,7 +77,7 @@ def post_status():
                 post_input.send_keys(noi_dung)
                 post_status_button = driver.find_element(By.NAME, 'view_post')
                 post_status_button.click()
-                with open(tai_khoan, 'a') as f:
+                with open(tai_khoan + '_log.txt', 'a') as f:
                     f.write(tai_khoan +': Post nội dung thành công vào group: ' + group_link + '\n')
             except:
                 pass
