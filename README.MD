@@ -7,7 +7,11 @@
 
 ## Cài Đặt Thư Viện
 
-1. Sao chép hoặc tải xuống repository về máy cục bộ của bạn.
+1. Clone repo về máy
+    ```powershell
+    git clone https://github.com/OvFTeam/spam_post_group.git
+    ```
+
 2. Cài đặt các gói Python cần thiết bằng pip:
 
     ```powershell
