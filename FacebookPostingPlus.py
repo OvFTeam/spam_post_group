@@ -3,8 +3,8 @@ import os
 import sys
 
 import requests
+from PyQt5 import QtGui
 from PyQt5.QtCore import QThread, pyqtSignal
-from PyQt5.QtGui import QIcon
 from PyQt5.QtWidgets import (QApplication, QFileDialog, QLabel, QLineEdit,
                              QMessageBox, QPushButton, QTextEdit, QVBoxLayout,
                              QWidget)
@@ -349,8 +349,8 @@ class UI(QWidget):
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
-    app_icon = "icon.png"
-    app_icon = QIcon(app_icon)
+    icon_location = sys._MEIPASS + "/icon.png"
+    app_icon = QtGui.QIcon(icon_location)
     app.setWindowIcon(app_icon)
     ui = UI()
     ui.show()
