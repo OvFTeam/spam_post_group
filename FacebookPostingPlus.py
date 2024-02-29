@@ -90,26 +90,38 @@ class Worker(QThread):
                     if self.check_posted_post(group_link):
                         continue
 
-
                     post_photo = driver.find_element(By.NAME, 'view_photo')
                     post_photo.click()
+                    photo_1_posted = False
+                    photo_2_posted = False
+                    photo_3_posted = False
+
                     for img_path in duong_dan_anh:
                         photo_1 = driver.find_element(By.NAME, 'file1')
-                        photo_1.send_keys(img_path)
+                        photo_1.send_keys(duong_dan_anh[0])
                         photo_1_posted = True
-                        if photo_1_posted:
-                            photo_2 = driver.find_element(By.NAME, 'file2')
-                            photo_2.send_keys(img_path)
-                            photo_2_posted = True
-                        elif photo_2_posted:
-                            photo_3 = driver.find_element(By.NAME, 'file3')
-                            photo_3.send_keys(img_path)
-                            photo_3_posted = True
-                        elif photo_3_posted:
-                            break
+                        try:
+                            if photo_1_posted and not photo_2_posted:
+                                photo_2 = driver.find_element(By.NAME, 'file2')
+                                photo_2.send_keys(duong_dan_anh[1])
+                                photo_2_posted = True
+                        except:
+                            pass
                         post_button = driver.find_element(
                             By.NAME, 'add_photo_done')
+
                         post_button.click()
+                        try:
+                            if duong_dan_anh[2]:
+                                photo3 = driver.find_element(By.NAME, 'view_photo')
+                                photo3.click()
+                                photo_3 = driver.find_element(By.NAME, 'file1')
+                                photo_3.send_keys(duong_dan_anh[2])
+                                post_button = driver.find_element(
+                                    By.NAME, 'add_photo_done')
+                                post_button.click()
+                        except:
+                            pass
                     post_input = driver.find_element(By.NAME, 'xc_message')
                     post_input.send_keys(noi_dung)
                     post_status_button = driver.find_element(
@@ -190,7 +202,8 @@ class UI(QWidget):
         layout.addWidget(self.button_image)
 
         self.label_threads = QLabel('Số luồng:')
-        self.input_threads = QLineEdit()
+        self.input_threads = QLineEdit("1")
+        self.input_threads.setText('1')
         layout.addWidget(self.label_threads)
         layout.addWidget(self.input_threads)
 
