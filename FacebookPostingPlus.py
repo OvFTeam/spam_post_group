@@ -3,7 +3,6 @@ import os
 import sys
 
 import requests
-from PyQt5 import QtGui
 from PyQt5.QtCore import QThread, pyqtSignal
 from PyQt5.QtWidgets import (QApplication, QFileDialog, QLabel, QLineEdit,
                              QMessageBox, QPushButton, QTextEdit, QVBoxLayout,
@@ -15,10 +14,11 @@ from selenium.webdriver.common.by import By
 class Worker(QThread):
     finished = pyqtSignal()
 
-    def __init__(self, config):
+    def __init__(self, config, thread_id):
         super().__init__()
         self.config = config
         self.stopped = False
+        self.thread_id = thread_id
 
     def run(self):
         tai_khoan = self.config['tai_khoan']
@@ -86,13 +86,29 @@ class Worker(QThread):
             try:
                 driver.get(group_link)
                 try:
+                    if self.check_posted_post(group_link):
+                        continue
+
+
                     post_photo = driver.find_element(By.NAME, 'view_photo')
                     post_photo.click()
-                    photo_1 = driver.find_element(By.NAME, 'file1')
-                    photo_1.send_keys(duong_dan_anh)
-                    post_button = driver.find_element(
-                        By.NAME, 'add_photo_done')
-                    post_button.click()
+                    for img_path in duong_dan_anh:
+                        photo_1 = driver.find_element(By.NAME, 'file1')
+                        photo_1.send_keys(img_path)
+                        photo_1_posted = True
+                        if photo_1_posted:
+                            photo_2 = driver.find_element(By.NAME, 'file2')
+                            photo_2.send_keys(img_path)
+                            photo_2_posted = True
+                        elif photo_2_posted:
+                            photo_3 = driver.find_element(By.NAME, 'file3')
+                            photo_3.send_keys(img_path)
+                            photo_3_posted = True
+                        elif photo_3_posted:
+                            break
+                        post_button = driver.find_element(
+                            By.NAME, 'add_photo_done')
+                        post_button.click()
                     post_input = driver.find_element(By.NAME, 'xc_message')
                     post_input.send_keys(noi_dung)
                     post_status_button = driver.find_element(
@@ -101,6 +117,8 @@ class Worker(QThread):
                     with open(tai_khoan + '_log.txt', 'a') as f:
                         f.write(
                             tai_khoan + ': Post nội dung thành công vào group: ' + group_link + '\n')
+
+                    self.save_posted_post(group_link)
                 except:
                     pass
             except:
@@ -109,12 +127,30 @@ class Worker(QThread):
         driver.quit()
         self.finished.emit()
 
+    def check_posted_post(self, group_link):
+        posted_posts = self.load_posted_posts()
+        return posted_posts.get(group_link, False)
+
+    def load_posted_posts(self):
+        posted_posts = {}
+        if os.path.exists('posted_posts.json'):
+            with open('posted_posts.json', 'r') as f:
+                posted_posts = json.load(f)
+        return posted_posts
+
+    def save_posted_post(self, group_link):
+        posted_posts = self.load_posted_posts()
+        posted_posts[group_link] = True
+        with open('posted_posts.json', 'w') as f:
+            json.dump(posted_posts, f)
+
 
 class UI(QWidget):
     def __init__(self):
         super().__init__()
         self.initUI()
         self.loadConfig()
+        self.workers = []
 
     def initUI(self):
         self.setWindowTitle('Facebook Posting Plus')
@@ -148,9 +184,14 @@ class UI(QWidget):
 
         self.label_image = QLabel('Chọn hình ảnh:')
         self.button_image = QPushButton('Chọn')
-        self.button_image.clicked.connect(self.chooseImage)
+        self.button_image.clicked.connect(self.chooseImages)
         layout.addWidget(self.label_image)
         layout.addWidget(self.button_image)
+
+        self.label_threads = QLabel('Số luồng:')
+        self.input_threads = QLineEdit()
+        layout.addWidget(self.label_threads)
+        layout.addWidget(self.input_threads)
 
         self.button_save_config = QPushButton('Lưu cấu hình')
         self.button_save_config.clicked.connect(self.saveConfig)
@@ -168,42 +209,60 @@ class UI(QWidget):
 
         self.setStyleSheet('''
             QWidget {
-                background-color: #282a36;
-                color: #f8f8f2;
-                border-radius: 10px;
+                background-color: #FCEBB6;
             }
+
             QLabel {
-                color: #f8f8f2;
+                font-family: "Comic Sans MS";
+                font-size: 16px;
+                color: #FF9A8B;
+            }
+
+            QLineEdit {
+                background-color: #FFF6E8;
                 font-size: 14px;
-            }
-            QLineEdit, QTextEdit {
-                background-color: #44475a;
-                color: #f8f8f2;
-                border: 1px solid #6272a4;
+                border: 2px solid #FF9A8B;
+                border-radius: 5px;
                 padding: 5px;
-                border-radius: 5px;
             }
-            QPushButton {
-                background-color: #6272a4;
-                color: #f8f8f2;
-                padding: 5px 10px;
-                border: none;
-                font-weight: bold;
+            QLineEdit:hover {
+                background-color: #FFD8C2;
+            }
+
+            QTextEdit {
+                background-color: #FFF6E8;
+                font-size: 14px;
+                border: 2px solid #FF9A8B;
                 border-radius: 5px;
+                padding: 5px;
+            }
+
+            QPushButton {
+                background-color: #FF9A8B;
+                color: white;
+                font-size: 14px;
+                border: none;
+                border-radius: 5px;
+                padding: 8px 16px;
             }
             QPushButton:hover {
-                background-color: #778899;
+                background-color: #FFC4BD;
             }
         ''')
 
-    def chooseImage(self):
-        filename, _ = QFileDialog.getOpenFileName(
+
+    def chooseImages(self):
+        filenames, _ = QFileDialog.getOpenFileNames(
             self, 'Chọn hình ảnh', '.', 'Image files (*.jpg *.png)')
-        if filename:
-            print("Đã chọn hình ảnh:", filename)
-            self.image_path = filename
-            _, file_name = os.path.split(filename)
-            self.button_image.setText(file_name)
+        if filenames:
+            if len(filenames) > 3:
+                QMessageBox.warning(self, "Lỗi",
+                                    "Chỉ cho phép chọn tối đa 3 ảnh!", QMessageBox.Ok)
+                return
+            self.image_paths = filenames
+            self.button_image.setText(
+                "Đã chọn {} hình ảnh".format(len(filenames)))
+
 
     def saveConfig(self):
         tai_khoan = self.input_account.text().replace(" ", "")
@@ -212,7 +271,8 @@ class UI(QWidget):
         link_group = self.input_link_group.toPlainText().replace(
             " ", "").replace("www.", "mbasic.")
         noi_dung = self.input_content.toPlainText()
-        duong_dan_anh = self.image_path if hasattr(self, 'image_path') else ""
+        duong_dan_anh = self.image_paths if hasattr(
+            self, 'image_paths') else []
         config = {
             "tai_khoan": tai_khoan,
             "mat_khau": mat_khau,
@@ -246,24 +306,32 @@ class UI(QWidget):
                 self.input_link_group.setPlainText(
                     config.get('link_group', ''))
                 self.input_content.setPlainText(config.get('noi_dung', ''))
-                self.image_path = config.get('duong_dan_anh', '')
-                if self.image_path:
-                    _, file_name = os.path.split(self.image_path)
-                    self.button_image.setText(file_name)
+                self.image_paths = config.get('duong_dan_anh', [])
+                if self.image_paths:
+                    self.button_image.setText(
+                        "Đã chọn {} hình ảnh".format(len(self.image_paths)))
 
     def startExecution(self):
-        config = {
-            "tai_khoan": self.input_account.text().replace(" ", ""),
-            "mat_khau": self.input_password.text().replace(" ", ""),
-            "ma_xac_minh": self.input_2fa.text().replace(" ", ""),
-            "link_group": self.input_link_group.toPlainText().replace(
-                " ", "").replace("www.", "mbasic."),
-            "noi_dung": self.input_content.toPlainText(),
-            "duong_dan_anh": self.image_path if hasattr(self, 'image_path') else ""
-        }
-        self.worker = Worker(config)
-        self.worker.finished.connect(self.executionFinished)
-        self.worker.start()
+        num_threads = int(self.input_threads.text())
+        if num_threads <= 0:
+            QMessageBox.warning(self, "Lỗi",
+                                "Số luồng phải là một số nguyên dương!", QMessageBox.Ok)
+            return
+        self.workers = []
+        for i in range(num_threads):
+            config = {
+                "tai_khoan": self.input_account.text().replace(" ", ""),
+                "mat_khau": self.input_password.text().replace(" ", ""),
+                "ma_xac_minh": self.input_2fa.text().replace(" ", ""),
+                "link_group": self.input_link_group.toPlainText().replace(
+                    " ", "").replace("www.", "mbasic."),
+                "noi_dung": self.input_content.toPlainText(),
+                "duong_dan_anh": self.image_paths if hasattr(self, 'image_paths') else []
+            }
+            worker = Worker(config, i)
+            worker.finished.connect(self.executionFinished)
+            worker.start()
+            self.workers.append(worker)
 
     def executionFinished(self):
         QMessageBox.information(
@@ -272,16 +340,14 @@ class UI(QWidget):
     def stopExecution(self):
         QMessageBox.information(self, "Adu",
                                 "Đợi chạy nốt nhé, hihi :>>", QMessageBox.Ok)
-        if hasattr(self, 'worker') and self.worker.isRunning():
-            self.worker.stopped = True
+        for worker in self.workers:
+            if worker.isRunning():
+                worker.stopped = True
         os.system('taskkill /im chromedriver.exe /f')
 
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
     ui = UI()
-    icon_location = sys._MEIPASS + "/icon.png"
-    app_icon = QtGui.QIcon(icon_location)
-    app.setWindowIcon(app_icon)
     ui.show()
     sys.exit(app.exec_())
