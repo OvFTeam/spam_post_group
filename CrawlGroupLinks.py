@@ -410,8 +410,8 @@ class FacebookGroupCrawler(QWidget):
 if __name__ == "__main__":
     app = QApplication(sys.argv)
     window = FacebookGroupCrawler()
-    app_icon_path = "./icon.png"
-    app_icon = QIcon(app_icon_path)
+    app_icon = "icon.png"
+    app_icon = QIcon(app_icon)
     app.setWindowIcon(app_icon)
     window.show()
     sys.exit(app.exec_())
