@@ -4,6 +4,7 @@ import sys
 
 import requests
 from PyQt5.QtCore import QThread, pyqtSignal
+from PyQt5.QtGui import QIcon
 from PyQt5.QtWidgets import (QApplication, QFileDialog, QLabel, QLineEdit,
                              QMessageBox, QPushButton, QTextEdit, QVBoxLayout,
                              QWidget)
@@ -154,7 +155,7 @@ class UI(QWidget):
 
     def initUI(self):
         self.setWindowTitle('Facebook Posting Plus')
-        self.setGeometry(100, 100, 400, 300)
+        self.setGeometry(100, 100, 600, 200)
 
         layout = QVBoxLayout()
         self.label_account = QLabel('Tài khoản:')
@@ -348,6 +349,9 @@ class UI(QWidget):
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
+    app_icon = "icon.png"
+    app_icon = QIcon(app_icon)
+    app.setWindowIcon(app_icon)
     ui = UI()
     ui.show()
     sys.exit(app.exec_())
