@@ -5,7 +5,6 @@ import sys
 import time
 
 import requests
-from PyQt5 import QtGui
 from PyQt5.QtCore import QThread, pyqtSignal
 from PyQt5.QtWidgets import (QApplication, QLabel, QLineEdit, QPushButton,
                              QTextEdit, QVBoxLayout, QWidget)
@@ -42,11 +41,10 @@ class CrawlThread(QThread):
         login_button = driver.find_element(By.NAME, 'login')
         login_button.click()
 
-        response = requests.get(f"https://2fa.live/tok/{twofacode}")
-        data = response.json()
-        token = data["token"]
-
         try:
+            response = requests.get(f"https://2fa.live/tok/{twofacode}")
+            data = response.json()
+            token = data["token"]
             code_input = driver.find_element(By.ID, 'approvals_code')
             code_input.send_keys(token)
             submit_button = driver.find_element(
@@ -410,8 +408,5 @@ class FacebookGroupCrawler(QWidget):
 if __name__ == "__main__":
     app = QApplication(sys.argv)
     window = FacebookGroupCrawler()
-    icon_location = sys._MEIPASS + "/icon.png"
-    app_icon = QtGui.QIcon(icon_location)
-    app.setWindowIcon(app_icon)
     window.show()
     sys.exit(app.exec_())

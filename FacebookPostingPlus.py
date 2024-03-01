@@ -1,9 +1,9 @@
 import json
 import os
 import sys
+import time
 
 import requests
-from PyQt5 import QtGui
 from PyQt5.QtCore import QThread, pyqtSignal
 from PyQt5.QtWidgets import (QApplication, QFileDialog, QLabel, QLineEdit,
                              QMessageBox, QPushButton, QTextEdit, QVBoxLayout,
@@ -48,12 +48,10 @@ class Worker(QThread):
             return
         except:
             pass
-
-        response = requests.get(f"https://2fa.live/tok/{ma_xac_minh}")
-        data = response.json()
-        token = data["token"]
-
         try:
+            response = requests.get(f"https://2fa.live/tok/{ma_xac_minh}")
+            data = response.json()
+            token = data["token"]
             code_input = driver.find_element(By.ID, 'approvals_code')
             code_input.send_keys(token)
             submit_button = driver.find_element(
@@ -87,14 +85,11 @@ class Worker(QThread):
             try:
                 driver.get(group_link)
                 try:
-                    if self.check_posted_post(group_link):
-                        continue
 
                     post_photo = driver.find_element(By.NAME, 'view_photo')
                     post_photo.click()
                     photo_1_posted = False
                     photo_2_posted = False
-                    photo_3_posted = False
 
                     for img_path in duong_dan_anh:
                         photo_1 = driver.find_element(By.NAME, 'file1')
@@ -107,10 +102,12 @@ class Worker(QThread):
                                 photo_2_posted = True
                         except:
                             pass
-                        post_button = driver.find_element(
-                            By.NAME, 'add_photo_done')
-
-                        post_button.click()
+                        try:
+                            post_button = driver.find_element(
+                                By.NAME, 'add_photo_done')
+                            post_button.click()
+                        except:
+                            pass
                         try:
                             if duong_dan_anh[2]:
                                 photo3 = driver.find_element(By.NAME, 'view_photo')
@@ -122,16 +119,15 @@ class Worker(QThread):
                                 post_button.click()
                         except:
                             pass
-                    post_input = driver.find_element(By.NAME, 'xc_message')
-                    post_input.send_keys(noi_dung)
-                    post_status_button = driver.find_element(
-                        By.NAME, 'view_post')
-                    post_status_button.click()
-                    with open(tai_khoan + '_log.txt', 'a') as f:
-                        f.write(
-                            tai_khoan + ': Post nội dung thành công vào group: ' + group_link + '\n')
-
-                    self.save_posted_post(group_link)
+                        post_input = driver.find_element(By.NAME, 'xc_message')
+                        post_input.send_keys(noi_dung)
+                        post_status_button = driver.find_element(
+                            By.NAME, 'view_post')
+                        time.sleep(0.2)
+                        post_status_button.click()
+                        with open(tai_khoan + '_log.txt', 'a') as f:
+                            f.write(
+                                tai_khoan + ': Post nội dung thành công vào group: ' + group_link + '\n')
                 except:
                     pass
             except:
@@ -139,24 +135,6 @@ class Worker(QThread):
 
         driver.quit()
         self.finished.emit()
-
-    def check_posted_post(self, group_link):
-        posted_posts = self.load_posted_posts()
-        return posted_posts.get(group_link, False)
-
-    def load_posted_posts(self):
-        posted_posts = {}
-        if os.path.exists('posted_posts.json'):
-            with open('posted_posts.json', 'r') as f:
-                posted_posts = json.load(f)
-        return posted_posts
-
-    def save_posted_post(self, group_link):
-        posted_posts = self.load_posted_posts()
-        posted_posts[group_link] = True
-        with open('posted_posts.json', 'w') as f:
-            json.dump(posted_posts, f)
-
 
 class UI(QWidget):
     def __init__(self):
@@ -362,9 +340,7 @@ class UI(QWidget):
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
-    icon_location = sys._MEIPASS + "/icon.png"
-    app_icon = QtGui.QIcon(icon_location)
-    app.setWindowIcon(app_icon)
     ui = UI()
     ui.show()
     sys.exit(app.exec_())
+# 61554980854933|5I1*ABJ3vHY|WZHYPNR7VZTGWKHLBI7W3ZBSOVEOBLXB|oouhicizd200061@desertsundesigns.com|5I1*ABJ3vHY
